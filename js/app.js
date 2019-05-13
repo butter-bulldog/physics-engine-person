@@ -3,8 +3,12 @@ const Engine = Matter.Engine,
     Runner = Matter.Runner,
     World = Matter.World,
     Bodies = Matter.Bodies,
+    Composite = Matter.Composite,
+    Composites = Matter.Composites,
     MouseConstraint = Matter.MouseConstraint,
     Mouse = Matter.Mouse;
+
+
 
 
 // エンジン作成
@@ -44,16 +48,13 @@ const box = Bodies.rectangle(450, 50, 80, 80);
 // 地面
 const ground = Bodies.rectangle(400, 610, 810, 120, { isStatic: true });
 
-// 丸と四角と地面を追加
+
+// 世界に追加
 World.add(world, [
   circle,
   box,
-  ground
-]);
-
-
-// 壁を追加
-World.add(world, [
+  ground,
+  // 壁
   Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
   Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
   Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
@@ -61,17 +62,39 @@ World.add(world, [
 ]);
 
 
+// 人間
+const ragdoll = makePerson(300, 300, 1.2, {
+  density: 0.0005,   // 密度
+  frictionAir: 0.06, // 空気抵抗
+  restitution: 1,    // 弾力性
+  friction: 0.01,    // 本体の摩擦
+ }
+);
+World.add(world, [ragdoll]);
+
+
+// ブロックの集合
+const stack = Composites.stack(100, 100, 11, 5, 0, 0, function(x, y) {
+  return Bodies.rectangle(x, y, 40, 40);
+});
+World.add(world, [stack]);
+
+
 // マウスドラッグ可能に
 const mouse = Mouse.create(render.canvas);
 const mouseConstraint = MouseConstraint.create(engine, {
   mouse: mouse,
   constraint: {
-    stiffness: 0.2,
+    stiffness: 0.6,
+    length: 0,
+    angularStiffness: 0,
     render: {
       visible: false
     }
   }
 });
-World.add(engine.world, mouseConstraint);
+World.add(world, mouseConstraint);
 render.mouse = mouse;
+
+
 
